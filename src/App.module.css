@@ -1,0 +1,101 @@
+.wrapper {
+  height: 100%;
+  background: var(--color-steel-700);
+}
+
+.panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+}
+
+@media all and (min-width: 600px) {
+  /* bigger screens, make it a floating panel */
+  .wrapper {
+    padding: 3vh;
+  }
+
+  .panel {
+    max-height: 1000px;
+    overflow: hidden;
+    border-radius: 4px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  background: var(--color-primary-500);
+  color: var(--color-primary-50);
+  padding: 8px;
+}
+
+.titles {
+  padding-right: 4px;
+}
+
+.title {
+  font-size: 22px;
+}
+
+.subTitle {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.destroyButton {
+  margin-left: auto;
+  margin-right: 8px;
+  background: none;
+  border: 1px solid white;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.new {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  color: var(--color-steel-300);
+  font-weight: 300;
+}
+
+.message {
+  padding: 8px;
+}
+
+.message:nth-child(odd) {
+  background: var(--color-steel-50);
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  z-index: 1;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.textarea {
+  flex: 1;
+  align-self: stretch;
+  resize: none;
+  padding: 8px;
+}
+
+.sendButton {
+  padding: 8px;
+  margin: 8px;
+  background: var(--color-primary-500);
+  color: white;
+  text-transform: uppercase;
+  font-weight: 300;
+}
