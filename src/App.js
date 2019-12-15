@@ -1,4 +1,6 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import { collect } from 'react-recollect';
 import uuid from 'uuid/v4';
 import ScrollWindow from './ScrollWindow';
 import * as storage from './Utils/storage';
@@ -17,30 +19,21 @@ const resetApp = () => {
   document.location.reload();
 };
 
-// TODO (davidg): this logic is all a right mess
 class App extends React.PureComponent {
-  state = {
-    userId: this.props.userId,
-    chatId: this.props.chatId,
-    messages: [],
-    draft: '',
-    name: 'Anon',
-  };
-
   inputRef = React.createRef();
 
   changesPending = false;
 
   mergeMessagesIntoState = newMessages => {
-    const messages = mergeItems(newMessages, this.state.messages);
+    const messages = mergeItems(newMessages, this.props.store.messages);
 
-    this.setState({messages});
+    this.props.store.messages = messages;
 
     return messages;
   };
 
   startPolling = () => {
-    api.poll(this.state.chatId, data => {
+    api.poll(this.props.store.chatId, data => {
       if (data.error) {
         // The ID was probably deleted. So...
         resetApp();
@@ -53,7 +46,7 @@ class App extends React.PureComponent {
         if (this.changesPending) {
           this.changesPending = false;
 
-          api.update(this.state.chatId, {messages: mergedMessages});
+          api.update(this.props.store.chatId, {messages: mergedMessages});
         }
       } else {
         console.warn('Something is not OK');
@@ -62,7 +55,7 @@ class App extends React.PureComponent {
   };
 
   loadChat = async () => {
-    const data = await api.read(this.state.chatId);
+    const data = await api.read(this.props.store.chatId);
 
     if (data.error) {
       console.error(data.error);
@@ -70,7 +63,7 @@ class App extends React.PureComponent {
     } else if (data.messages) {
       this.mergeMessagesIntoState(data.messages);
 
-      setUrl(this.state.chatId);
+      setUrl(this.props.store.chatId);
 
       this.startPolling();
     } else {
@@ -88,28 +81,26 @@ class App extends React.PureComponent {
       storage.set('chatId', data.id);
       setUrl(data.id);
 
-      this.setState(
-        {chatId: data.id},
-        this.startPolling,
-      );
+      this.props.store.chatId = data.id;
+      this.startPolling();
     }
   };
 
   updateChat = async () => {
     const newMessage = {
       id: uuid(),
-      userId: this.state.userId,
-      text: this.state.draft,
-      name: this.state.name,
+      userId: this.props.store.userId,
+      text: this.props.store.draft,
+      name: this.props.store.name,
       dateTime: Date.now(),
     };
 
     // Update the store so it renders on the screen
-    const nextMessages = this.state.messages.slice();
+    const nextMessages = this.props.store.messages.slice();
     nextMessages.push(newMessage);
 
     this.mergeMessagesIntoState(nextMessages);
-    this.setState({draft: ''});
+    this.props.store.draft = '';
 
     // But don't send the changes to the API right away.
     // This makes it more likely that the database will contain the latest messages
@@ -118,13 +109,13 @@ class App extends React.PureComponent {
   };
 
   destroy = async () => {
-    await api.delete(this.state.chatId);
+    await api.delete(this.props.store.chatId);
 
     resetApp();
   };
 
   componentDidMount = async () => {
-    if (this.state.chatId) {
+    if (this.props.store.chatId) {
       this.loadChat();
     } else {
       this.createChat();
@@ -145,16 +136,16 @@ class App extends React.PureComponent {
             <button className={styles.destroyButton} onClick={this.destroy}>Destroy</button>
           </div>
 
-          {!!this.state.chatId && (
+          {!!this.props.store.chatId && (
             <React.Fragment>
               <ScrollWindow className={styles.messages}>
-                {this.state.messages.length > 0
-                  ? this.state.messages.map(message => (
+                {this.props.store.messages.length > 0
+                  ? this.props.store.messages.map(message => (
                     <div
                       key={message.dateTime}
                       className={styles.message}
                     >
-                      {message.userId === this.state.userId
+                      {message.userId === this.props.store.userId
                         ? 'You'
                         : message.name
                       }: {message.text}
@@ -176,7 +167,7 @@ class App extends React.PureComponent {
                   ref={this.inputRef}
                   className={styles.textarea}
                   rows={2}
-                  value={this.state.draft}
+                  value={this.props.store.draft}
                   placeholder="Words go in here"
                   autoFocus
                   onKeyDown={e => {
@@ -186,7 +177,7 @@ class App extends React.PureComponent {
                     }
                   }}
                   onChange={e => {
-                    this.setState({draft: e.target.value});
+                    this.props.store.draft = e.target.value;
                   }}
                 />
 
@@ -200,4 +191,20 @@ class App extends React.PureComponent {
   }
 }
 
-export default App;
+App.propTypes = {
+  store: PropTypes.shape({
+    chatId: PropTypes.string,
+    userId: PropTypes.string,
+    messages: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string,
+      userId: PropTypes.string,
+      text: PropTypes.string,
+      name: PropTypes.string,
+      dateTime: PropTypes.number,
+    })),
+    draft: PropTypes.string,
+    name: PropTypes.string,
+  })
+};
+
+export default collect(App);

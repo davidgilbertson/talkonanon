@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { store } from 'react-recollect';
 import uuid from 'uuid/v4';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
@@ -32,11 +33,14 @@ const getChatId = () => {
   return storage.get('chatId');
 };
 
+store.userId = getUserId();
+store.chatId = getChatId();
+store.messages = [];
+store.draft = '';
+store.name = 'Anon';
+
 ReactDOM.render(
-  <App
-    chatId={getChatId()}
-    userId={getUserId()}
-  />,
+  <App />,
   document.getElementById('app')
 );
 
