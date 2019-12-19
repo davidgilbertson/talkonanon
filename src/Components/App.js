@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { collect } from 'react-recollect';
 import uuid from 'uuid/v4';
-import ScrollWindow from './ScrollWindow';
-import * as storage from './Utils/storage';
-import api from './Data/api';
-import mergeItems from './Utils/mergeItems';
+import ScrollWindow from 'Components/ScrollWindow';
+import api from 'Data/api';
+import * as storage from 'Utils/storage';
+import mergeItems from 'Utils/mergeItems';
 import styles from './App.module.css';
 
 const setUrl = id => {

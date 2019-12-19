@@ -8,11 +8,7 @@ const fetchJson = async (url, opts = {}) => fetch(url, {
     ...opts.headers,
     'Content-Type': 'application/json',
   },
-  body: opts.body ? JSON.stringify({
-    // Only store a string in the database, not an object.
-    // Because https://stackoverflow.com/questions/59330613/can-i-get-consistent-order-of-fields-from-a-doc-get-data-query-in-a-firestor/59330714#59330714
-    data: JSON.stringify(opts.body),
-  }) : undefined,
+  body: opts.body ? JSON.stringify(opts.body) : undefined,
 }).then(res => res.json());
 
 const api = {
@@ -28,7 +24,7 @@ const api = {
     if (response.error) return response;
 
     try {
-      return JSON.parse(response.data);
+      return response;
     } catch (err) {
       return {
         error: 'Could not parse',
