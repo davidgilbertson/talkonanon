@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { collect } from 'react-recollect';
 import uuid from 'uuid/v4';
 import ScrollWindow from 'Components/ScrollWindow';
-import api from 'Data/api';
+import cab from 'Data/cab';
 import * as storage from 'Utils/storage';
 import mergeItems from 'Utils/mergeItems';
 import styles from './App.module.css';
@@ -33,8 +33,8 @@ class App extends React.PureComponent {
   };
 
   startPolling = () => {
-    api.poll(this.props.store.chatId, data => {
-      if (data.error) {
+    cab.poll(this.props.store.chatId, ({error, data}) => {
+      if (error) {
         // The ID was probably deleted. So...
         resetApp();
       } else if (data.messages) {
@@ -46,7 +46,7 @@ class App extends React.PureComponent {
         if (this.changesPending) {
           this.changesPending = false;
 
-          api.update(this.props.store.chatId, {messages: mergedMessages});
+          cab.update(this.props.store.chatId, {messages: mergedMessages});
         }
       } else {
         console.warn('Something is not OK');
@@ -55,10 +55,10 @@ class App extends React.PureComponent {
   };
 
   loadChat = async () => {
-    const data = await api.read(this.props.store.chatId);
+    const {error, data} = await cab.read(this.props.store.chatId);
 
-    if (data.error) {
-      console.error(data.error);
+    if (error) {
+      console.error(error);
       resetApp();
     } else if (data.messages) {
       this.mergeMessagesIntoState(data.messages);
@@ -72,16 +72,16 @@ class App extends React.PureComponent {
   };
 
   createChat = async () => {
-    const data = await api.create({messages: []});
+    const {error, id} = await cab.create({messages: []});
 
-    if (data.error) {
+    if (error) {
       // TODO (davidg): Show a message or something. For now, nothing
-      console.error(data.error);
+      console.error(error);
     } else {
-      storage.set('chatId', data.id);
-      setUrl(data.id);
+      storage.set('chatId', id);
+      setUrl(id);
 
-      this.props.store.chatId = data.id;
+      this.props.store.chatId = id;
       this.startPolling();
     }
   };
@@ -109,7 +109,7 @@ class App extends React.PureComponent {
   };
 
   destroy = async () => {
-    await api.delete(this.props.store.chatId);
+    await cab.delete(this.props.store.chatId);
 
     resetApp();
   };
